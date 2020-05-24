@@ -27,16 +27,29 @@ function logRequests(request, response, next) {
   // ends to count the time and show on console
   console.timeEnd(logLabel);
 }
-// call the function (middleware) logRequests
+
+// Validade the repository id
+function validateRepositoryId(request, response, next) {
+  const { id } = request.params;
+  if (!isUuid(id)) {
+    return response.status(400).json({ error: "Invalid Project ID" });
+  }
+  return next();
+}
+
+// Call the function (middleware) logRequests
 app.use(logRequests);
 
-// get a list with all repositories
+// Call the function to validade the repository id
+app.use("/repositories:id", validateRepositoryId);
+
+// Get a list with all repositories
 app.get("/repositories", (request, response) => {
   const { title, url, techs, likes } = request.query;
   return response.json(repositories);
 });
 
-// create a new repository
+// Create a new repository
 app.post("/repositories", (request, response) => {
   const { title, url, techs = [], likes } = request.body;
   const repository = { id: uuid(), title, url, techs, likes: 0 };
@@ -44,6 +57,7 @@ app.post("/repositories", (request, response) => {
   return response.json(repository);
 });
 
+// Edit a repository by id
 app.put("/repositories/:id", (request, response) => {
   const { id } = request.params;
   const { title, url, techs } = request.body;
@@ -58,6 +72,7 @@ app.put("/repositories/:id", (request, response) => {
   return response.json(repository);
 });
 
+// Delete the repository by id
 app.delete("/repositories/:id", (request, response) => {
   const { id } = request.params;
 
@@ -74,6 +89,7 @@ app.delete("/repositories/:id", (request, response) => {
   return response.status(204).send();
 });
 
+// Update the likes incrementing by +1 every each request
 app.post("/repositories/:id/like", (request, response) => {
   const { id } = request.params;
 
